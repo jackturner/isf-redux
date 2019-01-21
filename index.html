@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>ISF Redux</title>
+    <meta charset="utf-8">
+    <link href="https://fonts.googleapis.com/css?family=Rubik:400,500" rel="stylesheet">
+    <link rel="stylesheet" href="isf-redux.css">
+  </head>
+  <body>
+
+    <div id="page">
+      <header id="title-bar">
+        <h1>Shader Name</h1>
+        by <h2>Author Name</h2>
+      </header>
+  
+      <div id="shader">
+        <div id="panels">
+          <div id="panel-fragment">
+            <pre><code>/*{
+  "CREDIT": "by VIDVOX",
+  "CATEGORIES": [
+    "Distortion Effect"
+  ],
+  "INPUTS": [
+    {
+      "NAME": "inputImage",
+      "TYPE": "image"
+    },
+    {
+      "NAME": "intensity",
+      "TYPE": "float",
+      "MIN": 0,
+      "MAX": 10,
+      "DEFAULT": 0.2
+    },
+    {
+      "NAME": "invert_map",
+      "TYPE": "bool",
+      "DEFAULT": 0
+    }
+  ]
+}*/
+
+
+varying vec2 left_coord;
+varying vec2 right_coord;
+varying vec2 above_coord;
+varying vec2 below_coord;
+
+varying vec2 lefta_coord;
+varying vec2 righta_coord;
+varying vec2 leftb_coord;
+varying vec2 rightb_coord;
+
+float gray(vec4 n)
+{
+  return (n.r + n.g + n.b)/3.0;
+}
+
+const float tau = 6.28318530718;
+
+void main()
+{
+
+  vec4 color = IMG_THIS_PIXEL(inputImage);
+  vec4 colorL = IMG_NORM_PIXEL(inputImage, left_coord);
+  vec4 colorR = IMG_NORM_PIXEL(inputImage, right_coord);
+  vec4 colorA = IMG_NORM_PIXEL(inputImage, above_coord);
+  vec4 colorB = IMG_NORM_PIXEL(inputImage, below_coord);
+
+  vec4 colorLA = IMG_NORM_PIXEL(inputImage, lefta_coord);
+  vec4 colorRA = IMG_NORM_PIXEL(inputImage, righta_coord);
+  vec4 colorLB = IMG_NORM_PIXEL(inputImage, leftb_coord);
+  vec4 colorRB = IMG_NORM_PIXEL(inputImage, rightb_coord);
+
+
+
+  float gx = (-1.0 * gray(colorLA)) + (-1.0 * gray(colorL)) + (-1.0 * gray(colorLB)) + (1.0 * gray(colorRA)) + (1.0 * gray(colorR)) + (1.0 * gray(colorRB));
+  float gy = (1.0 * gray(colorLA)) + (1.0 * gray(colorA)) + (1.0 * gray(colorRA)) + (-1.0 * gray(colorRB)) + (-1.0 * gray(colorB)) + (-1.0 * gray(colorLB));
+
+  float edge = pow(gx*gx + gy*gy,0.5);
+  float brightness = (color.r + color.g + color.b) / 3.0;
+
+  vec2 tc = isf_FragNormCoord;
+  vec2 modifiedCenter = vec2(0.5,0.5);
+  float r = distance(modifiedCenter, tc);
+  float a = atan ((tc.y-modifiedCenter.y),(tc.x-modifiedCenter.x));
+  
+  //	adjust the angle and radius based on the brightness and edge level
+  if (invert_map)	{
+    edge = 1.0 - edge;
+  }
+  r = r + intensity * (1.0-edge) * (brightness - 0.5);
+  //a = a + intensity * pow(1.0+edge,brightness);
+  
+  tc.x = r * cos(a) + 0.5;
+  tc.y = r * sin(a) + 0.5;
+  
+  vec4 final = IMG_NORM_PIXEL(inputImage, tc);
+  
+  gl_FragColor = final;
+}</code></pre>
+          </div>
+          <div id="panel-vertex">
+            <pre><code>varying vec2 left_coord;
+varying vec2 right_coord;
+varying vec2 above_coord;
+varying vec2 below_coord;
+
+varying vec2 lefta_coord;
+varying vec2 righta_coord;
+varying vec2 leftb_coord;
+varying vec2 rightb_coord;
+
+
+void main()
+{
+  isf_vertShaderInit();
+  vec2 texc = vec2(isf_FragNormCoord[0],isf_FragNormCoord[1]);
+  vec2 d = 1.0/RENDERSIZE;
+  
+  left_coord = clamp(vec2(texc.xy + vec2(-d.x , 0)),0.0,1.0);
+  right_coord = clamp(vec2(texc.xy + vec2(d.x , 0)),0.0,1.0);
+  above_coord = clamp(vec2(texc.xy + vec2(0,d.y)),0.0,1.0);
+  below_coord = clamp(vec2(texc.xy + vec2(0,-d.y)),0.0,1.0);
+
+  lefta_coord = clamp(vec2(texc.xy + vec2(-d.x , d.x)),0.0,1.0);
+  righta_coord = clamp(vec2(texc.xy + vec2(d.x , d.x)),0.0,1.0);
+  leftb_coord = clamp(vec2(texc.xy + vec2(-d.x , -d.x)),0.0,1.0);
+  rightb_coord = clamp(vec2(texc.xy + vec2(d.x , -d.x)),0.0,1.0);
+}</code></pre>
+          </div>
+          <div id="panel-inputs">
+            <div class="dat-gui-container">
+              <div class="dg main">
+                <ul>
+                  <li class="cr image"><div><span class="property-name">inputImage</span><div class="c"><div class="image-picker"><div class="selected-image"><img crossorigin="anonymous" class="content" src="https://isf.video/bee.jpg" style="display: block;"><video class="content" crossorigin="anonymous" playsinline="true" src="" style="display: none;"></video><img crossorigin="anonymous" class="content gif-img"></div><div class="image-swatches"><div class="swatch-buttons"><div class="camera-button"><span>Video</span><div class="camera-icon"></div></div><div class="new-image-button"><span>Image</span><div class="new-image-icon"></div></div></div><div class="swatch-images"><img src="https://isf.video/gif1.gif" class="swatch"><img src="https://isf.video/gif2.gif" class="swatch"><img src="https://isf.video/gif3.gif" class="swatch"></div></div><input type="file"></div></div></div></li>
+                  <li class="cr number has-slider has-animate-buttons"><div><span class="property-name">intensity</span><div class="c"><div class="button-container"><button class="saw-button"></button><button class="sine-button sine-button--activated"></button></div><div><input type="text"></div><div class="slider"><div class="slider-fg" style="width: 80.4183%;"></div></div></div></div></li>
+                  <li class="cr boolean"><div><span class="property-name">invert_map</span><div class="c"><input type="checkbox"></div></div></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="shader-view">
+            <iframe src="https://isf.video/sketches/5c13e4e1b791f37ce0ab02f0/embed" style="border: 0"></iframe>
+        </div>
+      </div>
+
+      <div id="controls">
+        <button>Like</button>
+        <button>Fork</button>
+        <button>Download</button>
+        <button>Share</button>
+        <button>Console</button>
+        <button>Browse Related</button>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/split.js/dist/split.min.js"></script>
+    <script>
+Split(['#panels', '#shader-view'], {direction: 'vertical', sizes: [40, 60]})
+Split(['#panel-fragment', '#panel-vertex', '#panel-inputs'], {sizes: [33.333, 33.333, 33.333]})
+
+
+    </script>
+  </body>
+</html>

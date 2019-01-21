@@ -1,0 +1,75 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+    height: 100%;
+    -webkit-overflow-scrolling: touch;
+}
+
+body {
+  font-size: 18px;
+  color: #CCC;
+  font-family: Rubik;
+  width: 100%;
+  height: 100%;
+}
+
+#page {
+    background-color: #202020;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+#title-bar {
+    font-size: 15px;
+}
+
+#title-bar h1 {
+    font-size: 21px;
+    font-weight: normal;
+}
+
+#title-bar h2 {
+    display: inline;
+    font-size: 15px;
+    font-weight: normal;
+}
+
+#shader {
+    display: flex;
+    flex-grow: 1;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+}
+
+#panels {
+    width: 100%;
+    height: 40%;
+    display: flex;
+}
+
+#panels > div {
+    width: 33%;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+#shader-view {
+    width: 100%;
+    height: 60%;
+    background-color: cornflowerblue;
+    position: relative;
+}
+
+#shader-view iframe {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+code {
+    font-size: 11px;
+}
